@@ -12,6 +12,7 @@ public class Token {
     private int reallocationCount;
     private LocalDateTime createdAt;
     private boolean allocated;
+    private int snapshotPriority; // Priority at time of insertion into queue
 
     public Token(String patientId, TokenSource source, int basePriority) {
         this.patientId = patientId;
@@ -19,6 +20,7 @@ public class Token {
         this.basePriority = basePriority;
         this.createdAt = LocalDateTime.now();
         this.allocated = false;
+        this.snapshotPriority = basePriority;
     }
 
     public String getTokenId() { return tokenId; }
@@ -29,4 +31,6 @@ public class Token {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public boolean isAllocated() { return allocated; }
     public void setAllocated(boolean allocated) { this.allocated = allocated; }
+    public int getSnapshotPriority() { return snapshotPriority; }
+    public void setSnapshotPriority(int priority) { this.snapshotPriority = priority; }
 }

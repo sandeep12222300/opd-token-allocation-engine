@@ -1,25 +1,25 @@
 package com.opd.opd_token_engine.model;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Doctor {
 
     private String doctorId;
-    private double efficiencyScore;
-    private Map<String, TimeSlot> slots = new HashMap<>();
+    private volatile double efficiencyScore;
+    private Map<String, TimeSlot> slots = new ConcurrentHashMap<>();
 
     public Doctor(String doctorId, double efficiencyScore) {
         this.doctorId = doctorId;
         this.efficiencyScore = efficiencyScore;
     }
 
-    public void addSlot(String slotId, int baseCapacity) {
+    public synchronized void addSlot(String slotId, int baseCapacity) {
         int effectiveCapacity = (int) (baseCapacity * efficiencyScore);
         slots.put(slotId, new TimeSlot(slotId, effectiveCapacity));
     }
 
-    public void applyDelay(double delayFactor) {
+    public synchronized void applyDelay(double delayFactor) {
         this.efficiencyScore *= delayFactor;
 
         for (TimeSlot slot : slots.values()) {

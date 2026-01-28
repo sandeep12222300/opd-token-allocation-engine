@@ -1,7 +1,5 @@
 package com.opd.opd_token_engine.model;
 
-import com.opd.opd_token_engine.engine.PriorityCalculator;
-
 import java.util.PriorityQueue;
 
 public class TimeSlot {
@@ -22,21 +20,18 @@ public class TimeSlot {
         this.baseCapacity = baseCapacity;
         this.capacity = baseCapacity;
 
+        // Use snapshot priority for stable ordering
         this.allocatedTokens = new PriorityQueue<>(
-                (a, b) -> Integer.compare(
-                        PriorityCalculator.calculate(b),
-                        PriorityCalculator.calculate(a)
-                )
+                (a, b) -> Integer.compare(a.getSnapshotPriority(), b.getSnapshotPriority())
         );
 
         this.waitingQueue = new PriorityQueue<>(
-                (a, b) -> Integer.compare(
-                        PriorityCalculator.calculate(b),
-                        PriorityCalculator.calculate(a)
-                )
+                (a, b) -> Integer.compare(b.getSnapshotPriority(), a.getSnapshotPriority())
         );
     }
 
+
+    public String getSlotId() { return slotId; }
 
     public int getCapacity() {
         return capacity;
