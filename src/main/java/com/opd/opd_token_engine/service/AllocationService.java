@@ -60,11 +60,12 @@ public class AllocationService {
         Integer position = null;
         if ("WAITLISTED".equals(allocResult.status)) {
             synchronized (slot) {
-                // compute position: convert queue to list to find index
+                // Note: PriorityQueue iterator does not guarantee priority order
+                // Position calculation is approximate and for informational purposes only
                 List<Token> waiting = new ArrayList<>(slot.getWaitingQueue());
                 for (int i = 0; i < waiting.size(); i++) {
                     if (waiting.get(i).getTokenId().equals(token.getTokenId())) {
-                        position = i + 1; // 1-based position
+                        position = i + 1; // 1-based position (approximate)
                         break;
                     }
                 }
