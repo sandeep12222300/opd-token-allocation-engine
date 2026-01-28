@@ -3,6 +3,7 @@ package com.opd.opd_token_engine.controller;
 import com.opd.opd_token_engine.dto.AllocationResponseDTO;
 import com.opd.opd_token_engine.dto.TokenRequestDTO;
 import com.opd.opd_token_engine.service.AllocationService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,7 @@ public class TokenController {
 
     @PostMapping
     public AllocationResponseDTO createToken(
-            @RequestBody TokenRequestDTO request) {
+            @Valid @RequestBody TokenRequestDTO request) {
 
         return service.createToken(
                 request.doctorId,
