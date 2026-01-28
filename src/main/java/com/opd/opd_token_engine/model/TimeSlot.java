@@ -38,6 +38,8 @@ public class TimeSlot {
     }
 
 
+    public String getSlotId() { return slotId; }
+
     public int getCapacity() {
         return capacity;
     }
