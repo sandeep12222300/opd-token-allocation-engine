@@ -104,8 +104,7 @@ Represents a patient appointment token.
   "basePriority": "int",       // Initial priority based on source
   "reallocationCount": "int",  // Number of times preempted
   "createdAt": "LocalDateTime", // Creation timestamp
-  "allocated": "boolean",      // Current allocation status
-  "snapshotPriority": "int"    // Priority at time of queue insertion (prevents heap corruption)
+  "allocated": "boolean"       // Current allocation status
 }
 ```
 
@@ -151,23 +150,19 @@ enum TokenSource {
 #### TokenRequestDTO
 ```java
 {
-  "doctorId": "String",      // Required: Doctor identifier
-  "slotId": "String",        // Required: Time slot identifier
-  "patientId": "String",     // Required: Patient identifier
-  "source": "TokenSource"    // Required: Token source (validated)
+  "doctorId": "String",
+  "slotId": "String",
+  "patientId": "String",
+  "source": "TokenSource"
 }
 ```
-
-**Validation**: All fields are validated using JSR-303 Bean Validation annotations (@NotBlank, @NotNull)
 
 #### AllocationResponseDTO
 ```java
 {
-  "tokenId": "String",           // Allocated token identifier
-  "status": "String",            // Status: ALLOCATED, WAITLISTED, REALLOCATED_LOW_PRIORITY, ERROR
-  "reason": "String",            // Human-readable reason for the status
-  "promotedTokenId": "String",   // ID of token moved to waiting queue (if reallocated)
-  "positionInQueue": "Integer"   // Position in waiting queue (if waitlisted, approximate)
+  "tokenId": "String",
+  "status": "String",
+  "reason": "String"
 }
 ```
 
@@ -254,33 +249,10 @@ Priority Reduction = Reallocation Count × 10
 
 ### Priority Queue Management
 
-The system uses **snapshot-based priority** to maintain heap invariant:
-- Priorities are calculated once at insertion time and stored in the token
-- PriorityQueues use immutable snapshot values for comparison
-- Allocated queue: Min-heap (lowest priority at peek for easy preemption)
-- Waiting queue: Max-heap (highest priority at peek for promotion)
-
-**Implementation**:
-```java
-// Calculate and snapshot priority at insertion
-int tokenPriority = PriorityCalculator.calculate(token);
-token.setSnapshotPriority(tokenPriority);
-
-// Comparator uses stable snapshot values
-this.allocatedTokens = new PriorityQueue<>(
-    (a, b) -> Integer.compare(a.getSnapshotPriority(), b.getSnapshotPriority())
-);
-
-this.waitingQueue = new PriorityQueue<>(
-    (a, b) -> Integer.compare(b.getSnapshotPriority(), a.getSnapshotPriority())
-);
-```
-
-**Benefits**:
+Both allocated and waiting queues use **max-heap** data structures (PriorityQueue with custom comparator) ensuring:
 - O(1) access to highest/lowest priority token
 - O(log n) insertion and removal
-- Maintains heap invariant (no corruption from dynamic priority changes)
-- Priority recalculated on state transitions (e.g., when moved to waiting queue)
+- Note: Priorities are calculated at comparison time based on current timestamp, base priority, and reallocation count
 
 ## Edge Cases
 
@@ -395,29 +367,12 @@ if (slot == null) {
 
 ### Concurrent Access Handling
 
-**Current State**: Thread-safe implementation with proper synchronization
+**Current State**: In-memory implementation assumes single-threaded access
 
-**Implementation**:
-- **ConcurrentHashMap**: Used for InMemoryStore.doctors to handle concurrent doctor access
-- **Synchronized Methods**: Doctor's addSlot() and applyDelay() methods are synchronized
-- **Volatile Fields**: efficiencyScore marked volatile for visibility across threads
-- **Slot-level Locking**: AllocationEngine synchronizes on TimeSlot objects during allocation/cancellation
-- **Input Validation**: JSR-303 Bean Validation prevents invalid requests
-
-**Thread-Safe Operations**:
-```java
-// InMemoryStore with concurrent map
-public static Map<String, Doctor> doctors = new ConcurrentHashMap<>();
-
-// Synchronized doctor operations
-public synchronized void addSlot(String slotId, int baseCapacity) { ... }
-public synchronized void applyDelay(double delayFactor) { ... }
-
-// Slot-level synchronization
-synchronized (slot) {
-    // Allocation logic
-}
-```
+**Production Consideration**: For multi-threaded environments, implement:
+- Synchronization on slot operations
+- Thread-safe data structures (ConcurrentHashMap)
+- Optimistic locking for database-backed implementations
 
 ### System Resilience
 
