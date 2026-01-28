@@ -252,7 +252,7 @@ Priority Reduction = Reallocation Count × 10
 Both allocated and waiting queues use **max-heap** data structures (PriorityQueue with custom comparator) ensuring:
 - O(1) access to highest/lowest priority token
 - O(log n) insertion and removal
-- Automatic re-ordering as priorities change dynamically
+- Note: Priorities are calculated at comparison time based on current timestamp, base priority, and reallocation count
 
 ## Edge Cases
 
@@ -288,7 +288,7 @@ if (removed && !slot.getWaitingQueue().isEmpty()) {
 ### 3. Simultaneous Equal Priority Tokens
 **Scenario**: Multiple tokens with identical calculated priority
 
-**Handling**: Priority queue uses token creation timestamp as secondary comparator through natural ordering, ensuring FIFO behavior for equal priorities
+**Handling**: Priority queue comparator only compares calculated priorities. When two tokens have equal effective priority, their relative ordering in the queue is determined by Java's PriorityQueue implementation, which may not guarantee a specific order. In practice, the aging mechanism ensures that priorities diverge over time as tokens wait
 
 ### 4. Doctor Efficiency Changes
 **Scenario**: Doctor experiences delays, reducing efficiency
@@ -309,7 +309,7 @@ public void applyDelay(double delayFactor) {
 ### 5. Negative Effective Priority
 **Scenario**: Token with many reallocations may calculate negative priority
 
-**Handling**: System allows negative priorities; such tokens naturally sink to bottom of queue, eventually benefiting from aging mechanism
+**Handling**: System allows negative priorities; such tokens have the lowest calculated priority values and are deprioritized in the allocation logic, eventually benefiting from aging mechanism
 
 ### 6. Capacity Reduction During Operation
 **Scenario**: Slot capacity reduced while tokens allocated

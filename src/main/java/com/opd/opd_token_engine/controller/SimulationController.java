@@ -3,7 +3,7 @@ package com.opd.opd_token_engine.controller;
 import com.opd.opd_token_engine.dto.AllocationResponseDTO;
 import com.opd.opd_token_engine.model.TokenSource;
 import com.opd.opd_token_engine.service.AllocationService;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +21,7 @@ public class SimulationController {
         this.allocationService = allocationService;
     }
 
-    @GetMapping("/opd-day")
+    @PostMapping("/opd-day")
     public Map<String, Object> simulateOpdDay() {
         List<Map<String, Object>> events = new ArrayList<>();
         
